@@ -42,8 +42,27 @@ class FourierBining():
         self.freq_max = self.modes_separation[-1]
         self.n_dim = n_dim
         self.domain_size = n_dim*[1.] if domain_size is None else domain_size
+        self.n_bins = len(self.modes_separation)
         self.norm = norm
         self.device = device
+
+
+        self.k_mesh = None
+        self.k_magnitude = None
+        self.rk_magnitude = None
+        self.masks = None
+        self.fourier_shape = None
+        self.shapes_bin = None
+        self.input_model_shape = None
+        self.x_gridsize = None
+
+    
+        self.magnitude_spectrum()
+        self.create_masks() 
+
+        
+        
+
 
     def magnitude_spectrum(self):
         k_axes = []
@@ -77,7 +96,47 @@ class FourierBining():
                 k_min = self.modes_separation[i-1]
             k_max = self.modes_separation[i]
             mask = np.logical_and(self.rk_magnitude>=k_min, self.rk_magnitude<k_max)
+            mask = torch.tensor(mask, dtype=torch.bool, device=self.device)
             self.masks.append(mask)
+
+    def fourier_transform(self, x):
+        """ x tensor of shape (batch_size, seq_len, dim_1, dim_2, ..., dim_n, representation_dim) """
+        self.x_gridsize = x.shape[2:2+self.n_dim]
+        x =  x.permute(0, 1, -1, *range(2, 2 + self.n_dim))  # (batch_size, seq_len, representation_dim, dim_1, dim_2, ..., dim_n)
+        x_ft = torch.fft.rfftn(x, dim=tuple(range(3, 3 + self.n_dim)))  # (batch_size, seq_len, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n)
+        self.fourier_shape = x_ft.shape
+        return x_ft
+    
+    def binning(self, x_ft):
+        """ x_ft tensor of shape (batch_size, seq_len, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n) """
+        binned_x_ft = []
+        shapes_bin = []
+        input_model_shapes = []
+        for mask in self.masks:
+            bin = x_ft[..., mask] # (batch_size, seq_len, representation_dim, bin_dim_1, bin_dim_2, ..., bin_dim_n)
+            shapes_bin.append(bin.shape)
+            bin = bin.flatten(start_dim=2)
+            bin = torch.concatenate([bin.real, bin.imag], axis=-1) # (batch_size, seq_len, flattened_bin_dim = 2*prod_dims*representation_dim)
+            input_model_shapes.append(bin.shape[-1])
+            binned_x_ft.append(bin)      
+        self.shapes_bin = shapes_bin   
+        self.input_model_shape = input_model_shapes
+        return binned_x_ft  # list of tensors of shape (batch_size, seq_len, flattened_bin_dim)
+    
+
+    def unbinning(self, binned_x_ft):
+        """ binned_x_ft: list of tensors of shape (batch_size, seq_len, flattened_bin_dim) """
+        unbinned_x_ft = torch.zeros(self.fourier_shape, dtype=torch.cfloat, device=self.device)
+        for i, mask in enumerate(self.masks):
+            bin = binned_x_ft[i].reshape(self.shapes_bin[i]+(2))  # (batch_size, seq_len, representation_dim, dim_1, ..., dim_n, 2)
+            unbinned_x_ft[..., mask] = bin[..., 0] + 1j*bin[..., 1]
+        return unbinned_x_ft  # tensor of shape (batch_size, seq_len, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n)
+
+    def inverse_fourier_transform(self, x_ft):
+        """ x_ft tensor of shape (batch_size, seq_len, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n) """
+        x = torch.fft.irfftn(x_ft, s=[(self.x_gridsize[i]) for i in range(self.n_dim)], dim=tuple(range(3, 3 + self.n_dim)))  # (batch_size, seq_len, representation_dim, dim_1, dim_2, ..., dim_n)
+        x = x.permute(0, 1, *range(3, 3 + self.n_dim), 2)  # (batch_size, seq_len, dim_1, dim_2, ..., dim_n, representation_dim)
+        return x
 
 ###################################################################################################
 
@@ -132,6 +191,102 @@ class Multihead_Attention(torch.nn.Module):
 
 ###################################################################################################
 
+class Attention_Block(torch.nn.Module):
+    """
+    Attention Block Module.
+    """
+
+    def __init__(self, dim: int, num_heads: int, seq_len: int):
+        """
+        Initialise Attention_Block module.
+
+        Parameters:
+        - dim       (int) : Dimension of input.
+        - num_heads (int) : Number of attention heads.
+        - seq_len   (int) : Length of input sequence.
+        """
+        super().__init__()
+
+        self.self_attention = Multihead_Attention(dim, num_heads, seq_len)
+
+        self.ln_1 = torch.nn.LayerNorm(dim)
+        self.ln_2 = torch.nn.LayerNorm(dim)
+
+        self.mlp = torch.nn.Sequential(
+            torch.nn.Linear(dim, dim * 2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(dim * 2, dim)
+        )
+
+    def forward(self, x):
+
+        o, a = self.self_attention(self.ln_1(x))
+        x = x + o
+
+        o = self.mlp(self.ln_2(x))
+        x = x + o
+
+        return x, a
+    
+###################################################################################################
+
+
+class TransformerModel(torch.nn.Module):
+    """
+    Transformer Module (without Cross-Attention).
+    """
+
+    def __init__(self, n_obs, seq_len, n_heads, n_attblocks, hidden_dim, device="cpu"):
+        """
+        Initialise Transformer module.
+
+        Parameters:
+        - args      (dict): Model arguments.
+        - model_eval (bool): Evaluation mode flag.
+        """
+        super(TransformerModel, self).__init__()
+
+        self.device = device
+        self.dim = n_obs
+        self.seq_len = seq_len - 1
+        self.num_heads = n_heads
+        self.nattblocks = n_attblocks
+        self.hidden_dim = hidden_dim
+
+        self.input_embedding = nn.Linear(self.dim, self.hidden_dim)
+        self.output_embedding = nn.Linear(self.hidden_dim, self.dim)
+
+        position = torch.arange(0, self.seq_len).unsqueeze(-1)
+        div_term = torch.exp(torch.arange(0, self.hidden_dim, 2) * (-math.log(10000.0) / self.hidden_dim))
+        TE = torch.zeros(self.seq_len, self.hidden_dim)
+        TE[:, 0::2] = torch.sin(position * div_term)
+        TE[:, 1::2] = torch.cos(position * div_term)
+        self.register_buffer('TE', TE)
+
+        self.att_blocks = torch.nn.ModuleList([
+            Attention_Block(self.hidden_dim, self.num_heads, self.seq_len) for _ in range(self.nattblocks)
+        ])
+
+        self.mlp = torch.nn.Sequential(
+            torch.nn.Linear(self.hidden_dim, self.hidden_dim * 2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(self.hidden_dim * 2, self.hidden_dim)
+        )
+
+    def forward(self, z):
+
+        z = self.input_embedding(z)
+        z = z + self.TE
+
+        for i, att_block in enumerate(self.att_blocks):
+            z, a = att_block(z)
+
+        z = self.mlp(z[:, -1])
+        z = self.output_embedding(z)
+
+        return z
+    
+###################################################################################################
 
 class Multihead_CrossAttention(torch.nn.Module):
     """
@@ -178,7 +333,7 @@ class Multihead_CrossAttention(torch.nn.Module):
 
 ###################################################################################################
 
-class Attention_Block(torch.nn.Module):
+class CrossAttention_Block(torch.nn.Module):
     """
     Attention Block Module.
     """
@@ -223,7 +378,7 @@ class Attention_Block(torch.nn.Module):
 
 ###################################################################################################
 
-class TransformerModel(torch.nn.Module):
+class TransformerCrossModel(torch.nn.Module):
     """
     Transformer Module with Cross-Attention.
     """
