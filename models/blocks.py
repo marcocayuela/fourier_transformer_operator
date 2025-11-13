@@ -125,17 +125,21 @@ class FourierBining():
     
 
     def unbinning(self, binned_x_ft):
-        """ binned_x_ft: list of tensors of shape (batch_size, seq_len, flattened_bin_dim) """
-        unbinned_x_ft = torch.zeros(self.fourier_shape, dtype=torch.cfloat, device=self.device)
+        """ binned_x_ft: list of tensors of shape (batch_size, flattened_bin_dim) """
+        new_shape = list(self.fourier_shape)
+        new_shape.pop(1)  # remove seq_len dimension
+        unbinned_x_ft = torch.zeros(new_shape, dtype=torch.cfloat, device=self.device)
         for i, mask in enumerate(self.masks):
-            bin = binned_x_ft[i].reshape(self.shapes_bin[i]+(2))  # (batch_size, seq_len, representation_dim, dim_1, ..., dim_n, 2)
+            new_shape_bin = list(self.shapes_bin[i] + (2,))  # add last dimension for real and imaginary parts
+            new_shape_bin.pop(1) # remove seq_len dimension
+            bin = binned_x_ft[i].reshape(new_shape_bin)  # (batch_size, representation_dim, dim_1, ..., dim_n, 2)
             unbinned_x_ft[..., mask] = bin[..., 0] + 1j*bin[..., 1]
-        return unbinned_x_ft  # tensor of shape (batch_size, seq_len, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n)
+        return unbinned_x_ft  # tensor of shape (batch_size, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n)
 
     def inverse_fourier_transform(self, x_ft):
         """ x_ft tensor of shape (batch_size, seq_len, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n) """
-        x = torch.fft.irfftn(x_ft, s=[(self.x_gridsize[i]) for i in range(self.n_dim)], dim=tuple(range(3, 3 + self.n_dim)))  # (batch_size, seq_len, representation_dim, dim_1, dim_2, ..., dim_n)
-        x = x.permute(0, 1, *range(3, 3 + self.n_dim), 2)  # (batch_size, seq_len, dim_1, dim_2, ..., dim_n, representation_dim)
+        x = torch.fft.irfftn(x_ft, s=[(self.x_gridsize[i]) for i in range(self.n_dim)], dim=tuple(range(3, 3 + self.n_dim)))  # (batch_size, representation_dim, dim_1, dim_2, ..., dim_n)
+        x = x.permute(0, *range(2, 2 + self.n_dim), 1)  # (batch_size, dim_1, dim_2, ..., dim_n, representation_dim)
         return x
 
 ###################################################################################################
