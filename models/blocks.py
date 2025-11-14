@@ -36,14 +36,14 @@ class FourierBining():
         FourierBining class: Fourier Bining Layer model.
     """
 
-    def __init__(self, modes_separation, n_dim, domain_size=None, norm="L2", device="cpu"):
+    def __init__(self, modes_separation, n_dim, domain_size=None, norm_separation="L2", device="cpu"):
         super(FourierBining, self).__init__()
         self.modes_separation = modes_separation
         self.freq_max = self.modes_separation[-1]
         self.n_dim = n_dim
         self.domain_size = n_dim*[1.] if domain_size is None else domain_size
         self.n_bins = len(self.modes_separation)
-        self.norm = norm
+        self.norm_separation = norm_separation
         self.device = device
 
 
@@ -77,14 +77,14 @@ class FourierBining():
         self.rk_magnitude = self.k_magnitude[...,:self.freq_max+1]
 
     def compute_freq_magnitude(self, k_mesh):
-        if self.norm=="L2":
+        if self.norm_separation=="L2":
             k_magnitude = np.sqrt(np.sum([k**2 for k in k_mesh], axis=0)) 
-        elif self.norm=="L1":
+        elif self.norm_separation=="L1":
             k_magnitude = np.sum([np.abs(k) for k in k_mesh], axis=0) 
-        elif self.norm=="max":
+        elif self.norm_separation=="max":
             k_magnitude = np.max([np.abs(k) for k in k_mesh], axis=0)
         else:
-            raise NotImplementedError(f"Norm {self.norm} not implemented.")
+            raise NotImplementedError(f"Norm {self.norm_separation} not implemented.")
         return k_magnitude
 
     def create_masks(self):

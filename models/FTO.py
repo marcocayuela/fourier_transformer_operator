@@ -9,7 +9,8 @@ class FTO(nn.module):
     Fourier Transformer Operator model.
     """
 
-    def __init__(self, args):
+    def __init__(self, input_dim, output_dim, representation_dim, device, modes_separation,
+                 n_dim, domain_size, norm, seq_len, n_heads, n_attblocks, hidden_dim):
         """
         Initialise FTO module.
 
@@ -17,24 +18,24 @@ class FTO(nn.module):
         - args : Arguments containing model hyperparameters.
         """
         super(FTO).__init__()
-        self.input_dim = args["input_dim"]
-        self.output_dim = args["output_dim"]
-        self.representation_dim = args["representation_dim"]
-        self.device = args.get("device", "cpu")
-        self.modes_separation = args["modes_separation"]
-        self.n_dim = args["n_dim"]
-        self.domain_size = args["domain_size"]
-        self.norm = args.get("norm", "L2")
+        self.input_dim = input_dim
+        self.output_dim = output_dim
+        self.representation_dim = representation_dim
+        self.device = device
+        self.modes_separation = modes_separation
+        self.n_dim = n_dim
+        self.domain_size = domain_size
+        self.norm_separation = norm
 
-        self.seq_len = args["seq_len"]
-        self.n_heads = args["n_heads"]
-        self.n_attblocks = args["n_attblocks"]
-        self.hidden_dim = args["hidden_dim"]
+        self.seq_len = seq_len
+        self.n_heads = n_heads
+        self.n_attblocks = n_attblocks
+        self.hidden_dim = hidden_dim 
         
         
         self.lifting = LiftingLayer(input_dim=self.input_dim, output_dim=self.representation_dim, device=self.device)
         self.fourierbining = FourierBining(modes_separation=self.modes_separation, n_dim=self.n_dim,
-                                            domain_size=self.domain_size, norm=self.norm, device=self.device)
+                                            domain_size=self.domain_size, norm=self.norm_separation, device=self.device)
         
         self.transformers = []
         for i in range(self.fourierbining.num_bins):

@@ -1,0 +1,41 @@
+seed: 42
+
+# Experiment (ks, kolmogorov)
+exp_dir: kolmogorov
+input_dim: 2
+output_dim: 2
+n_dim: 2
+domain_size:
+  - 1
+  - 1
+
+# Model parameters
+modes_separation: 
+  - 8
+norm_separation: l2
+representation_dim: 4
+n_heads: 8
+n_attblocks: 1
+hidden_dim: 64
+
+
+# Training parameters
+seq_length: 10
+batch_size: 64
+num_workers: 4
+loss_fn: mse 
+optimizer: 
+  type: adam
+  lr: 0.001
+scheduler: one_cycle_lr
+metrics:
+  - rmse
+  - mae
+  - relative_rmse # relative rmse
+  - relative_mae # relative l1 norm
+
+
+#
+exp_name: exp1
+name_weigths_to_load: null
+
