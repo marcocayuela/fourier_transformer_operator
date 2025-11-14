@@ -20,7 +20,7 @@ class DatasetManager():
         
 
         if self.exp_dir == "kolmogorov":
-            data_dir = os.path.join('.','data','raw','kolmogorov')
+            data_dir = os.path.join('.','data','kolmogorov')
             
             train_path = os.path.join(data_dir,'train.h5')
             with h5py.File(train_path, "r") as f:
