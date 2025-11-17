@@ -1,6 +1,7 @@
 name: fto
 channels:
   - defaults
+  - conda-forge
 dependencies:
   - defaults/osx-arm64::bzip2==1.0.8=h80987f9_6
   - defaults/osx-arm64::ca-certificates==2025.11.4=hca03da5_0
