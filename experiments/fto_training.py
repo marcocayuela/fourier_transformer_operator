@@ -17,6 +17,8 @@ class FTOTraining():
             self.device = torch.device("mps") 
         else:
             self.device = torch.device("cpu")
+
+        print(f"Device used: {self.device}")
         
         self.args = args
 

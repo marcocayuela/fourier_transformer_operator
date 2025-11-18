@@ -106,15 +106,20 @@ class Trainer():
             end_time = time.time()
 
             epoch_duration = end_time - start_time
-            headers = ["Epoch"] + \
-                      [f"Train {k}" for k in train_metrics] + \
-                      [f"Test {k}" for k in test_metrics] + ["LR", "Time(s)"]
+            #headers = ["Epoch"] + \
+            #          [f"Train {k}" for k in train_metrics] + \
+            #          [f"Test {k}" for k in test_metrics] + ["LR", "Time(s)"]
 
+            headers = ["Epoch", "Train loss", "Test loss", "LR", "Time"]
+            #row = [epoch + 1] + \
+            #      [v for v in train_metrics.values()] + \
+            #      [v for v in test_metrics.values()] + \
+            #      [current_lr, epoch_duration]
             row = [epoch + 1] + \
-                  [v for v in train_metrics.values()] + \
-                  [v for v in test_metrics.values()] + \
+                  [train_metrics["loss"]] + \
+                  [test_metrics["loss"]] + \
                   [current_lr, epoch_duration]
-
+            
             table_str = tabulate([row], headers=headers, tablefmt="pretty", floatfmt=".3f")
             tqdm.write(table_str)
 
