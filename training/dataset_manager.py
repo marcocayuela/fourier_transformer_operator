@@ -52,3 +52,6 @@ class DatasetManager():
         self.testing_loader = DataLoader(self.training_sequence_dataset,
                                          batch_size=self.batch_size,
                                          shuffle=False)
+        
+        self.n_batch_train = len(self.training_loader)
+        self.n_batch_test = len(self.testing_loader)

@@ -10,7 +10,7 @@ from training.metric_logger import MetricLogger
 
 class Trainer():
 
-    def __init__(self, model, train_loader, test_loader, loss_fn, optimizer, scheduler, num_epochs, device, exp_dir, exp_name, metrics):
+    def __init__(self, model, train_loader, test_loader, loss_fn, optimizer, scheduler, num_epochs, device, exp_dir, exp_name, metrics, start_epoch):
         super(Trainer, self).__init__()
 
         self.model = model
@@ -24,6 +24,7 @@ class Trainer():
         self.exp_dir = exp_dir
         self.exp_name = exp_name
         self.metrics = metrics
+        self.start_epoch = start_epoch
 
     def train_epoch(self):
 
@@ -43,7 +44,7 @@ class Trainer():
             loss = self.loss_fn(outputs, targets)
             loss.backward()
             self.optimizer.step()
-            if self.scheduler:
+            if self.scheduler and self.scheduler.__class__.__name__ == "OneCycleLR":
                 self.scheduler.step()
         
             train_loss += loss.item()
@@ -99,7 +100,7 @@ class Trainer():
         self.min_train_loss = 1000 
         self.min_test_loss  = 1000
 
-        for epoch in range(self.num_epochs):
+        for epoch in range(self.start_epoch,self.start_epoch+self.num_epochs):
 
             start_time = time.time()
             train_metrics, test_metrics, current_lr = self.train_epoch()
@@ -110,7 +111,7 @@ class Trainer():
             #          [f"Train {k}" for k in train_metrics] + \
             #          [f"Test {k}" for k in test_metrics] + ["LR", "Time(s)"]
 
-            headers = ["Epoch", "Train loss", "Test loss", "LR", "Time"]
+            headers = ["Epoch", "Train loss", "Test loss", "LR", "Time(s)"]
             #row = [epoch + 1] + \
             #      [v for v in train_metrics.values()] + \
             #      [v for v in test_metrics.values()] + \
@@ -148,6 +149,8 @@ class Trainer():
                 
                 print(f"Best model saved at epoch {epoch+1} with train loss: {self.min_train_loss:.6f}")
 
+            if self.scheduler and self.scheduler.__class__.__name__ == "CosineAnnealingLR":
+                self.scheduler.step()
 
         path = os.path.join('runs',self.exp_dir, self.exp_name, 'model_weights', 'final_model.pth')
         torch.save({'epoch':epoch,

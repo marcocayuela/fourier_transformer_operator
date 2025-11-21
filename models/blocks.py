@@ -137,7 +137,32 @@ class FourierBining():
 
     def inverse_fourier_transform(self, x_ft):
         """ x_ft tensor of shape (batch_size, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n) """
-        x = torch.fft.irfftn(x_ft, s=[(self.x_gridsize[i]) for i in range(self.n_dim)], dim=tuple(range(2, 2 + self.n_dim))) # (batch_size, representation_dim, dim_1, dim_2, ..., dim_n)
+        padded_shape = list(x_ft.shape[:2]) + list(self.x_gridsize)
+        padded_shape[-1] = self.x_gridsize[-1] // 2 + 1
+
+        padded_x_ft = torch.zeros(padded_shape, dtype=x_ft.dtype, device=self.device)
+
+        indexes_list = []
+        for i in range(self.n_dim):
+            if i < self.n_dim-1:
+                positive_modes = torch.arange(self.freq_max)
+                negative_modes = torch.arange(self.x_gridsize[i]- self.freq_max, self.x_gridsize[i])
+                slice_dims = torch.cat((positive_modes, negative_modes))
+                indexes_list.append(slice_dims)
+            if i == self.n_dim - 1:
+                slice_dims = torch.arange(self.freq_max + 1)
+                indexes_list.append(slice_dims)
+
+        index_tuple = [slice(None), slice(None)]
+        for i, idx in enumerate(indexes_list):
+            shape = [1]*self.n_dim
+            shape[i] = -1
+            index_tuple.append(idx.reshape(shape))
+
+        index_tuple = tuple(index_tuple)
+
+        padded_x_ft[index_tuple] = x_ft         
+        x = torch.fft.irfftn(padded_x_ft, dim=tuple(range(2, 2 + self.n_dim))) # (batch_size, representation_dim, dim_1, dim_2, ..., dim_n)
         x = x.permute(0, *range(2, 2 + self.n_dim), 1)  # (batch_size, dim_1, dim_2, ..., dim_n, representation_dim)
         return x
     

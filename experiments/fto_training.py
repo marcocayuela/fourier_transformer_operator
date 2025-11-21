@@ -6,6 +6,8 @@ from models.FTO import FTO
 import torch
 import yaml
 
+import time
+
 class FTOTraining():
 
     def __init__(self, args):
@@ -14,7 +16,7 @@ class FTOTraining():
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
         elif torch.backends.mps.is_available():
-            self.device = torch.device("mps") 
+            self.device = torch.device("mps")
         else:
             self.device = torch.device("cpu")
 
@@ -63,22 +65,33 @@ class FTOTraining():
                        os.path.join('runs',self.exp_dir, self.exp_name, 'model_weights'),
                        os.path.join('runs',self.exp_dir, self.exp_name, 'logs')]
         
+        self.print_line()
+        print("Creating directories...")
         for d in directories:
             os.makedirs(d, exist_ok=True)
+            print(f"Directory created (or already existing): {d}")
 
         save_dir = os.path.join('runs',self.exp_dir, self.exp_name)
         save_path = os.path.join(save_dir, "config.yaml")
         with open(save_path, "w") as f:
             yaml.safe_dump(self.args, f)  # écrit le dictionnaire args dans le fichier
+            print(f"Configuration saved at: {save_path}")
+        self.print_line()
+        
 
 
 
     def execute_experience(self):
 
 
+        print(f"Starting experiment: {self.exp_name}\n")
         # Dataloaders creation
+        print("Loading datasets...")
+        start_time = time.time()
         self.datasets = DatasetManager(self.exp_dir, self.seq_length, self.batch_size, self.num_workers)
-
+        end_time = time.time()
+        print(f"Datasets loaded (time taken: {end_time - start_time:.2f} seconds)\n")
+        
         # Directories creation
         self.make_directories()
 
@@ -88,19 +101,26 @@ class FTOTraining():
                     self.domain_size, self.norm_separation, self.seq_length, self.n_heads,
                     self.n_attblocks, self.hidden_dim)
         
-        print(f"Number parameters: {model.count_parameters()}")
+        param_dict = model.count_parameters_per_module()
+        self.print_line()
+        print("Model parameters per module:")
+        for name, num in sorted(param_dict.items(), key=lambda x: x[1], reverse=True):
+            print(f"{name:20s}: {num:,} params")
+        self.print_line()
 
         if self.name_weights_to_load is not None:
             path_model = os.path.join('runs',self.exp_dir,self.exp_name,'model_weights')
             loaded_weights = torch.load(os.path.join(path_model, self.name_weights_to_load))
+            print(f"Loading weights from {self.name_weights_to_load}, epoch {loaded_weights['epoch']}")
             self.last_epoch = loaded_weights['epoch']
             state_dict = loaded_weights['model_state_dict']
             model.load_state_dict(state_dict)
+            print("Weights loaded successfully.\n")
 
         model = model.to(self.device).float()
 
         self.optimizer = Factory.get_optimizer(self.optimizer_info["type"], model.parameters(), lr=self.optimizer_info["lr"])
-        self.scheduler = Factory.get_scheduler(self.scheduler_info, self.optimizer, max_lr=self.optimizer_info["lr"], n_epoch=self.num_epochs, n_batch=len(self.datasets.training_sequence_dataset))
+        self.scheduler = Factory.get_scheduler(self.scheduler_info, self.optimizer)
         self.metrics = {metric: Factory.get_metric(metric) for metric in self.metrics_name}
         self.loss_fn = Factory.get_metric(self.loss_fn)
         # Create the trainer and train
@@ -115,8 +135,12 @@ class FTOTraining():
                           device=self.device,
                           exp_dir=self.exp_dir,
                           exp_name=self.exp_name, 
-                          metrics=self.metrics)
+                          metrics=self.metrics,
+                          start_epoch=self.last_epoch if self.name_weights_to_load is not None else 0)
         
         trainer.train_loop()
+
+    def print_line(self):
+        print("-------------------------------------------------------")
 
 

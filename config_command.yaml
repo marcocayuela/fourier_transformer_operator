@@ -20,15 +20,18 @@ hidden_dim: 64
 
 
 # Training parameters
-num_epochs: 15
+num_epochs: 100
 seq_length: 10
 batch_size: 64
 num_workers: 4
 loss_fn: mse 
 optimizer: 
   type: adam
-  lr: 0.01
-scheduler: one_cycle_lr
+  lr: 0.0005
+scheduler:
+  name: cosine_annealing
+  T_max: 100
+  eta_min: 0.00001
 metrics:
   - rmse
   - mae
@@ -37,6 +40,6 @@ metrics:
 
 
 #
-exp_name: exp1
+exp_name: exp2
 name_weigths_to_load: null
 

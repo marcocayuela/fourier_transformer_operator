@@ -32,7 +32,7 @@ def relative_mae(y_pred, y_true, eps=1e-8):
 class Factory():
 
     OPTIMIZERS = {"adam": torch.optim.Adam, "sgd": torch.optim.SGD}
-    SCHEDULERS = {"one_cycle_lr": torch.optim.lr_scheduler.OneCycleLR}
+    SCHEDULERS = {"one_cycle_lr": torch.optim.lr_scheduler.OneCycleLR, "cosine_annealing": torch.optim.lr_scheduler.CosineAnnealingLR}
 
     METRICS = {"mse": torch.nn.MSELoss(),
                "rmse": lambda y_pred, y_true: torch.sqrt(torch.mean((y_pred - y_true)**2)),
@@ -45,8 +45,16 @@ class Factory():
         return Factory.OPTIMIZERS[name](params, **kwargs)
     
     @staticmethod
-    def get_scheduler(name, optimizer, max_lr, n_epoch, n_batch, **kwargs):
-        return Factory.SCHEDULERS[name](optimizer, max_lr=max_lr, epochs=n_epoch, steps_per_epoch=n_batch, **kwargs)
+    def get_scheduler(scheduler_info, optimizer, num_epochs, n_batch):
+        name = scheduler_info["name"]
+        params = {k: v for k, v in scheduler_info.items() if k != "name"}
+        if name == "one_cycle_lr":
+            params["epochs"] = num_epochs
+            params["steps_per_epoch"] = n_batch
+        if name == "cosine_annealing":
+            params["T_max"] = num_epochs
+
+        return Factory.SCHEDULERS[name](optimizer, **params)
 
     @staticmethod
     def get_metric(name):

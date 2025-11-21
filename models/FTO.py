@@ -88,6 +88,14 @@ class FTO(nn.Module):
 
         return current_input  # (batch_size, pred_horizon, output_dim)
     
-    def count_parameters(self):
-        trainable_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        return trainable_params
+    def count_parameters_per_module(self):
+
+        param_dict = {}
+        
+        for name, module in self.named_children():
+            trainable = sum(p.numel() for p in module.parameters() if p.requires_grad)
+            param_dict[name] = trainable
+        
+        param_dict["total"] = sum(p.numel() for p in self.parameters() if p.requires_grad)
+        
+        return param_dict
