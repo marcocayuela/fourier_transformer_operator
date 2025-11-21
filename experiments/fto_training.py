@@ -120,7 +120,7 @@ class FTOTraining():
         model = model.to(self.device).float()
 
         self.optimizer = Factory.get_optimizer(self.optimizer_info["type"], model.parameters(), lr=self.optimizer_info["lr"])
-        self.scheduler = Factory.get_scheduler(self.scheduler_info, self.optimizer)
+        self.scheduler = Factory.get_scheduler(self.scheduler_info, self.optimizer, self.num_epochs, self.datasets.n_batch_train)
         self.metrics = {metric: Factory.get_metric(metric) for metric in self.metrics_name}
         self.loss_fn = Factory.get_metric(self.loss_fn)
         # Create the trainer and train
