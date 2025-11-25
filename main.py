@@ -17,7 +17,7 @@ def set_seed(seed: int):
     torch.backends.cudnn.benchmark = False
 
     # MPS (Apple Silicon / Metal) backend
-    if torch.backends.mps.is_available():
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
         torch.manual_seed(seed)
 
 
