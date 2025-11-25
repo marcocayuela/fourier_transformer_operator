@@ -12,12 +12,14 @@ class FTOTraining():
 
     def __init__(self, args):
 
+
+        self.device_asked = args.get("device", "auto")
         #Device parameters
-        if torch.cuda.is_available():
+        if self.device_asked in ["cuda","auto"] and torch.cuda.is_available():
             self.device = torch.device("cuda")
-        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        elif self.device_asked in ["mps","auto"] and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             self.device = torch.device("mps")
-        else:
+        elif self.device_asked in ["cuda","auto"]:
             self.device = torch.device("cpu")
 
         print(f"Device used: {self.device}")
