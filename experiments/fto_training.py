@@ -19,7 +19,7 @@ class FTOTraining():
             self.device = torch.device("cuda")
         elif self.device_asked in ["mps","auto"] and hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             self.device = torch.device("mps")
-        elif self.device_asked in ["cuda","auto"]:
+        elif self.device_asked in ["cpu","auto"]:
             self.device = torch.device("cpu")
 
         print(f"Device used: {self.device}")
