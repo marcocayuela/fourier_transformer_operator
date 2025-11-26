@@ -25,6 +25,7 @@ class Trainer():
         self.exp_name = exp_name
         self.metrics = metrics
         self.start_epoch = start_epoch
+        self.current_epoch = start_epoch
 
     def train_epoch(self):
 
@@ -34,7 +35,14 @@ class Trainer():
         train_loss = 0.0
         train_metrics = {k: 0.0 for k in self.metrics.keys()}
 
-        for batch_idx, (inputs, targets) in enumerate(self.train_loader):
+        batch_bar = tqdm(
+        enumerate(self.train_loader),
+        total=len(self.train_loader),
+        desc=f"Epoch {self.current_epoch + 1}",
+        leave=False,
+        ncols=90
+    )
+        for batch_idx, (inputs, targets) in batch_bar:
 
             inputs, targets = inputs.to(self.device).float(), targets.to(self.device).float()
             self.optimizer.zero_grad()
@@ -100,7 +108,13 @@ class Trainer():
         self.min_train_loss = 1000 
         self.min_test_loss  = 1000
 
-        for epoch in range(self.start_epoch,self.start_epoch+self.num_epochs):
+        epoch_bar = tqdm(
+            range(self.start_epoch, self.start_epoch + self.num_epochs),
+            desc="Training",
+            ncols=100,
+            dynamic_ncols=True)
+
+        for epoch in epoch_bar:
 
             start_time = time.time()
             train_metrics, test_metrics, current_lr = self.train_epoch()
@@ -116,8 +130,8 @@ class Trainer():
                   [float(v) for v in test_metrics.values()] + \
                   [float(current_lr), float(epoch_duration)]
 
-            
-            table_str = tabulate([row], headers=headers, tablefmt="pretty", floatfmt=".3f")
+            formatted = [f"{v:.3f}" if isinstance(v, float) else v for v in row]
+            table_str = tabulate([formatted], headers=headers, tablefmt="simple", colalign=("right",) * len(headers))
             tqdm.write(table_str)
 
             row_dict = {h: val for h, val in zip(headers, row)}
@@ -147,6 +161,8 @@ class Trainer():
 
             if self.scheduler and self.scheduler.__class__.__name__ == "CosineAnnealingLR":
                 self.scheduler.step()
+
+            self.current_epoch += 1
 
         path = os.path.join('runs',self.exp_dir, self.exp_name, 'model_weights', 'final_model.pth')
         torch.save({'epoch':epoch,
