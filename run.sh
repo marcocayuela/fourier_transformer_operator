@@ -11,7 +11,7 @@ module load python/3.11
 source activate fto
 pip install -r requirements.txt
 
-rsync -av $STORE/data/kolmogorov $SCRATCH/data/kolmogorov
+rsync -av $STORE/data/kolmogorov/ $SCRATCH/data/kolmogorov
 
 export DATA_DIR=$SCRATCH/data/
 export LOG_DIR=$SCRATCH/runs/
