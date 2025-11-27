@@ -100,9 +100,9 @@ class Trainer():
 
 
         headers = ["Epoch"] + \
-                  [f"Train {k}" for k in self.metrics] + \
-                  [f"Test {k}" for k in self.metrics] + \
-                  ["Train loss", "Test loss"] + \
+                  [f"Tr {k}" for k in self.metrics] + \
+                  [f"Te {k}" for k in self.metrics] + \
+                  ["Tr loss", "Te loss"] + \
                   ["LR", "Time(s)"]
         
         csv_path = os.path.join(self.exp_dir, self.exp_name, 'logs', 'metrics.csv')
