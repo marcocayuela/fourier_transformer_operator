@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 
 class DatasetManager():
 
-    def __init__(self, exp_dir, seq_length, batch_size, num_workers):
+    def __init__(self, data_rep, exp_dir, seq_length, batch_size, num_workers):
 
         self.exp_dir = exp_dir
         self.seq_length = seq_length
@@ -20,7 +20,7 @@ class DatasetManager():
         
 
         if self.exp_dir == "kolmogorov":
-            data_dir = os.path.join('.','data','kolmogorov')
+            data_dir = os.path.join(data_rep,'kolmogorov')
             
             train_path = os.path.join(data_dir,'train.h5')
             with h5py.File(train_path, "r") as f:

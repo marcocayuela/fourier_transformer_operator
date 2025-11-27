@@ -8,6 +8,12 @@ import yaml
 
 import time
 
+
+
+DATA_DIR = os.getenv("DATA_DIR", "./data")
+LOG_DIR = os.getenv("LOG_DIR", "./runs")
+
+
 class FTOTraining():
 
     def __init__(self, args):
@@ -41,7 +47,7 @@ class FTOTraining():
         self.metrics_name = self.args["metrics"]
 
         # Datasets
-        self.datasets = DatasetManager(self.exp_dir, self.seq_length, self.batch_size, self.num_workers)
+        self.datasets = DatasetManager(self.exp_dir, DATA_DIR, self.seq_length, self.batch_size, self.num_workers)
 
         # Model definition
         self.name_weights_to_load = self.args.get("name_weights_to_load", None)
@@ -62,10 +68,10 @@ class FTOTraining():
 
     def make_directories(self):
 
-        directories = [os.path.join('runs',self.exp_dir),
-                       os.path.join('runs',self.exp_dir, self.exp_name),
-                       os.path.join('runs',self.exp_dir, self.exp_name, 'model_weights'),
-                       os.path.join('runs',self.exp_dir, self.exp_name, 'logs')]
+        directories = [os.path.join(LOG_DIR,self.exp_dir),
+                       os.path.join(LOG_DIR,self.exp_dir, self.exp_name),
+                       os.path.join(LOG_DIR,self.exp_dir, self.exp_name, 'model_weights'),
+                       os.path.join(LOG_DIR,self.exp_dir, self.exp_name, 'logs')]
         
         self.print_line()
         print("Creating directories...")
