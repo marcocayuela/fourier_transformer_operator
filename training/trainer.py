@@ -8,6 +8,9 @@ from tqdm import tqdm
 
 from training.metric_logger import MetricLogger
 
+
+LOG_DIR = os.getenv("LOG_DIR")
+
 class Trainer():
 
     def __init__(self, model, train_loader, test_loader, loss_fn, optimizer, scheduler, num_epochs, device, exp_dir, exp_name, metrics, start_epoch):
@@ -140,7 +143,7 @@ class Trainer():
             # Save the best model based on test loss
             if test_metrics['loss'] < self.min_test_loss:
                 self.min_test_loss = test_metrics['loss']
-                path = os.path.join(self.exp_dir, self.exp_name, 'model_weights', 'min_test_loss.pth')
+                path = os.path.join(LOG_DIR, self.exp_dir, self.exp_name, 'model_weights', 'min_test_loss.pth')
                 torch.save({'epoch':epoch,
                             'model_state_dict': self.model.state_dict(),
                             'optimizer_state_dict':self.optimizer.state_dict()},
@@ -151,7 +154,7 @@ class Trainer():
 
             if train_metrics['loss'] < self.min_train_loss:
                 self.min_train_loss = train_metrics['loss']
-                path = os.path.join(self.exp_dir, self.exp_name, 'model_weights', 'min_train_loss.pth')
+                path = os.path.join(LOG_DIR, self.exp_dir, self.exp_name, 'model_weights', 'min_train_loss.pth')
                 torch.save({'epoch':epoch,
                             'model_state_dict': self.model.state_dict(),
                             'optimizer_state_dict':self.optimizer.state_dict()},
@@ -164,7 +167,7 @@ class Trainer():
 
             self.current_epoch += 1
 
-        path = os.path.join('runs',self.exp_dir, self.exp_name, 'model_weights', 'final_model.pth')
+        path = os.path.join(LOG_DIR, self.exp_dir, self.exp_name, 'model_weights', 'final_model.pth')
         torch.save({'epoch':epoch,
                     'model_state_dict': self.model.state_dict(),
                     'optimizer_state_dict':self.optimizer.state_dict()},
