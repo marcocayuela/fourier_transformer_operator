@@ -102,7 +102,7 @@ class Trainer():
                   ["Train loss", "Test loss"] + \
                   ["LR", "Time(s)"]
         
-        csv_path = os.path.join('runs',self.exp_dir, self.exp_name, 'logs', 'metrics.csv')
+        csv_path = os.path.join(self.exp_dir, self.exp_name, 'logs', 'metrics.csv')
         self.logger = MetricLogger(csv_path, headers)
 
         self.min_train_loss = 1000 
@@ -140,7 +140,7 @@ class Trainer():
             # Save the best model based on test loss
             if test_metrics['loss'] < self.min_test_loss:
                 self.min_test_loss = test_metrics['loss']
-                path = os.path.join('runs',self.exp_dir, self.exp_name, 'model_weights', 'min_test_loss.pth')
+                path = os.path.join(self.exp_dir, self.exp_name, 'model_weights', 'min_test_loss.pth')
                 torch.save({'epoch':epoch,
                             'model_state_dict': self.model.state_dict(),
                             'optimizer_state_dict':self.optimizer.state_dict()},
@@ -151,7 +151,7 @@ class Trainer():
 
             if train_metrics['loss'] < self.min_train_loss:
                 self.min_train_loss = train_metrics['loss']
-                path = os.path.join('runs',self.exp_dir, self.exp_name, 'model_weights', 'min_train_loss.pth')
+                path = os.path.join(self.exp_dir, self.exp_name, 'model_weights', 'min_train_loss.pth')
                 torch.save({'epoch':epoch,
                             'model_state_dict': self.model.state_dict(),
                             'optimizer_state_dict':self.optimizer.state_dict()},

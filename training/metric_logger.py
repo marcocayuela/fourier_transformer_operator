@@ -1,19 +1,23 @@
 import os
 import csv
 
+
+LOG_DIR = os.getenv("LOG_DIR")
+
+
 class MetricLogger:
     """
     Handles logging metrics to a CSV file.
     Creates the file if it doesn't exist, appends if it does.
     """
     def __init__(self, filepath, fieldnames):
-        self.filepath = filepath
+        self.filepath = os.path.join(LOG_DIR,filepath)
         self.fieldnames = fieldnames
 
         # Check if file exists
-        file_exists = os.path.isfile(filepath)
+        file_exists = os.path.isfile(self.filepath)
         # Open file in append mode
-        self.csvfile = open(filepath, 'a', newline='')
+        self.csvfile = open(self.filepath, 'a', newline='')
         self.writer = csv.DictWriter(self.csvfile, fieldnames=self.fieldnames)
 
         # If the file is new, write header

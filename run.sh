@@ -13,8 +13,8 @@ pip install -r requirements.txt
 
 rsync -av $STORE/data/kolmogorov $SCRATCH/data/kolmogorov
 
-export DATA_DIR=$SCRATCH/
-export LOG_DIR=$SCRATCH/data/
+export DATA_DIR=$SCRATCH/data/
+export LOG_DIR=$SCRATCH/runs/
 
 python main.py 
 source deactivate
