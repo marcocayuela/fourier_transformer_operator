@@ -93,13 +93,7 @@ class FTOTraining():
 
 
         print(f"Starting experiment: {self.exp_name}\n")
-        # Dataloaders creation
-        print("Loading datasets...")
-        start_time = time.time()
-        self.datasets = DatasetManager(self.exp_dir, self.seq_length, self.batch_size, self.num_workers)
-        end_time = time.time()
-        print(f"Datasets loaded (time taken: {end_time - start_time:.2f} seconds)\n")
-        
+
         # Directories creation
         self.make_directories()
 

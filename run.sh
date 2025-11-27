@@ -11,10 +11,10 @@ module load python/3.11
 source activate fto
 pip install -r requirements.txt
 
-rsync -av $STORE/data/kolmogorov $SCRATCH
+rsync -av $STORE/data/kolmogorov $SCRATCH/data/kolmogorov
 
 export DATA_DIR=$SCRATCH/
-export LOG_DIR=$SCRATCH/
+export LOG_DIR=$SCRATCH/data/
 
 python main.py 
 source deactivate
