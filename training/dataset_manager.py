@@ -46,15 +46,18 @@ class DatasetManager():
         self.training_loader = DataLoader(self.training_sequence_dataset,
                                           batch_size=self.batch_size,
                                           shuffle=True,
-                                          num_workers=self.num_workers,
+                                          #num_workers=self.num_workers,
                                           pin_memory=True,
-                                          persistent_workers=True)
+                                          #persistent_workers=True
+                                          )
 
-        self.testing_loader = DataLoader(self.training_sequence_dataset,
+        self.testing_loader = DataLoader(self.testing_sequence_dataset,
                                          batch_size=self.batch_size,
-                                         shuffle=False,num_workers=self.num_workers,
+                                         shuffle=False,
+                                         #num_workers=self.num_workers,
                                          pin_memory=True,
-                                         persistent_workers=True)
+                                         #persistent_workers=True
+                                         )
         
         self.n_batch_train = len(self.training_loader)
         self.n_batch_test = len(self.testing_loader)
