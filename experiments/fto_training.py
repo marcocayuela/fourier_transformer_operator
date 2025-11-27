@@ -47,7 +47,7 @@ class FTOTraining():
         self.metrics_name = self.args["metrics"]
 
         # Datasets
-        self.datasets = DatasetManager(self.exp_dir, DATA_DIR, self.seq_length, self.batch_size, self.num_workers)
+        self.datasets = DatasetManager(DATA_DIR, self.exp_dir, self.seq_length, self.batch_size, self.num_workers)
 
         # Model definition
         self.name_weights_to_load = self.args.get("name_weights_to_load", None)

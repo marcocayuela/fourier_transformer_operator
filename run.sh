@@ -3,7 +3,7 @@
 #SBATCH -p gpu
 #SBATCH --time=01:00:00
 #SBATCH -J kolmogorov90
-#SBATCH -o $SCRATCH/logs/kolmogorov90.out
+#SBATCH -o /scratch/cayuelam/logs/kolmogorov/%x_%j.out
 
 module purge
 module load python/3.11  
