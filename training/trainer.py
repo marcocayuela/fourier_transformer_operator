@@ -111,30 +111,28 @@ class Trainer():
         self.min_train_loss = 1000 
         self.min_test_loss  = 1000
 
-        epoch_bar = tqdm(
-            range(self.start_epoch, self.start_epoch + self.num_epochs),
-            desc="Training",
-            ncols=100,
-            dynamic_ncols=True)
 
-        for epoch in epoch_bar:
+        for epoch in range(self.start_epoch, self.start_epoch + self.num_epochs):
 
             start_time = time.time()
             train_metrics, test_metrics, current_lr = self.train_epoch()
             end_time = time.time()
 
             epoch_duration = end_time - start_time
-            headers = ["Epoch"] + \
-                      [f"Train {k}" for k in train_metrics] + \
-                      [f"Test {k}" for k in test_metrics] + ["LR", "Time(s)"]
+            headers = ["Epoch"]
+            row = [epoch + 1]
 
-            row = [epoch + 1] + \
-                  [float(v) for v in train_metrics.values()] + \
-                  [float(v) for v in test_metrics.values()] + \
-                  [float(current_lr), float(epoch_duration)]
+            for k in train_metrics.keys():
+                headers += [f"Tr {k}", f"Te {k}"]
+                row += [float(train_metrics[k]), float(test_metrics[k])]
+                
+            # Ajouter LR et temps
+            headers += ["LR", "Time(s)"]
+            row += [float(current_lr), float(epoch_duration)]
 
-            formatted = [f"{v:.3f}" if isinstance(v, float) else v for v in row]
+            formatted = [f"{v:.5f}" if isinstance(v, float) else v for v in row]
             table_str = tabulate([formatted], headers=headers, tablefmt="simple", colalign=("right",) * len(headers))
+            print("\n")
             tqdm.write(table_str)
 
             row_dict = {h: val for h, val in zip(headers, row)}
