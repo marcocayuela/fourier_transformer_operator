@@ -47,11 +47,14 @@ class DatasetManager():
                                           batch_size=self.batch_size,
                                           shuffle=True,
                                           num_workers=self.num_workers,
-                                          pin_memory=True)
+                                          pin_memory=True,
+                                          persistent_workers=True)
 
         self.testing_loader = DataLoader(self.training_sequence_dataset,
                                          batch_size=self.batch_size,
-                                         shuffle=False)
+                                         shuffle=False,num_workers=self.num_workers,
+                                         pin_memory=True,
+                                         persistent_workers=True)
         
         self.n_batch_train = len(self.training_loader)
         self.n_batch_test = len(self.testing_loader)
