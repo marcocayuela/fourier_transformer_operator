@@ -79,7 +79,7 @@ class FTOTraining():
             os.makedirs(d, exist_ok=True)
             print(f"Directory created (or already existing): {d}")
 
-        save_dir = os.path.join('runs',self.exp_dir, self.exp_name)
+        save_dir = os.path.join(LOG_DIR, self.exp_dir, self.exp_name)
         save_path = os.path.join(save_dir, "config.yaml")
         with open(save_path, "w") as f:
             yaml.safe_dump(self.args, f)  # écrit le dictionnaire args dans le fichier
