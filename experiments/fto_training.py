@@ -13,7 +13,6 @@ import time
 DATA_DIR = os.getenv("DATA_DIR", "./data")
 LOG_DIR = os.getenv("LOG_DIR", "./runs")
 
-
 class FTOTraining():
 
     def __init__(self, args):

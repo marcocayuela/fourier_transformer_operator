@@ -2,7 +2,7 @@ import os
 import csv
 
 
-LOG_DIR = os.getenv("LOG_DIR")
+LOG_DIR = os.getenv("LOG_DIR", "./runs")
 
 
 class MetricLogger:
