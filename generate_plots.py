@@ -60,13 +60,13 @@ if __name__ == "__main__":
         lines_2, labels_2 = ax2.get_legend_handles_labels()
         ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper right')
 
-        plt.savefig(os.path.join('runs',exp_dir, exp_name, 'logs', 'loss_and_lr_plot.png'), dpi=300)
+        plt.savefig(os.path.join(LOG_DIR,exp_dir, exp_name, 'logs', 'loss_and_lr_plot.png'), dpi=300)
         print(f"Plot saved at: {os.path.join('runs',exp_dir, exp_name, 'logs', 'loss_and_lr_plot.png')}\n")
         plt.close()
 
         #####################################################################
         ################## Load experiment config ###########################
-        path_config = os.path.join('runs', exp_dir, exp_name, 'config.yaml')
+        path_config = os.path.join(LOG_DIR, exp_dir, exp_name, 'config.yaml')
         with open(path_config, "r") as f:
             args = yaml.safe_load(f)
 
@@ -269,7 +269,7 @@ if __name__ == "__main__":
             print("Test set metrics:")
             for name, value in metrics_results.items():
                 print(f"{name:15s}: {value}")
-            save_path = os.path.join('runs', exp_dir, exp_name, 'logs', 'final_test_metrics.txt')
+            save_path = os.path.join(LOG_DIR, exp_dir, exp_name, 'logs', 'final_test_metrics.txt')
             with open(save_path, 'w') as f:
                 f.write("Test set metrics:\n")
                 for name, value in metrics_results.items():
@@ -298,7 +298,7 @@ if __name__ == "__main__":
             print("train set metrics:")
             for name, value in metrics_results.items():
                 print(f"{name:15s}: {value}")
-            save_path = os.path.join('runs', exp_dir, exp_name, 'logs', 'final_train_metrics.txt')
+            save_path = os.path.join(LOG_DIR, exp_dir, exp_name, 'logs', 'final_train_metrics.txt')
             with open(save_path, 'w') as f:
                 f.write("train set metrics:\n")
                 for name, value in metrics_results.items():
@@ -320,8 +320,8 @@ if __name__ == "__main__":
     plt.title('Relative Error of Autoregressive Prediction Over Time')
     plt.legend()
     plt.grid()
-    plt.savefig(os.path.join('runs',exp_dir, exp_name, 'logs', 'relative_error_over_time.png'), dpi=300)
-    print(f"Plot saved at: {os.path.join('runs',exp_dir, exp_name, 'logs', 'relative_error_over_time.png')}\n")
+    plt.savefig(os.path.join(LOG_DIR,exp_dir, exp_name, 'logs', 'relative_error_over_time.png'), dpi=300)
+    print(f"Plot saved at: {os.path.join(LOG_DIR,exp_dir, exp_name, 'logs', 'relative_error_over_time.png')}\n")
     plt.close()
 
 
@@ -336,6 +336,6 @@ if __name__ == "__main__":
     plt.title('Cinetic Energy Over Time')
     plt.legend()
     plt.grid()
-    plt.savefig(os.path.join('runs',exp_dir, exp_name, 'logs', 'cinetic_energy_over_time.png'), dpi=300)
-    print(f"Plot saved at: {os.path.join('runs',exp_dir, exp_name, 'logs', 'cinetic_energy_over_time.png')}\n")
+    plt.savefig(os.path.join(LOG_DIR,exp_dir, exp_name, 'logs', 'cinetic_energy_over_time.png'), dpi=300)
+    print(f"Plot saved at: {os.path.join(LOG_DIR,exp_dir, exp_name, 'logs', 'cinetic_energy_over_time.png')}\n")
     plt.close()
