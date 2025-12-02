@@ -24,6 +24,7 @@ model_to_load = 'min_test_loss.pth'
 n_epoch = 100
 #########################################################################
 
+LOG_DIR = os.getenv("LOG_DIR", "./runs")    
 
 if __name__ == "__main__":
 
@@ -31,7 +32,7 @@ if __name__ == "__main__":
         raise ValueError(f"Experiment {exp_name} in directory {exp_dir} does not exist.")
     else:
         print(f"Generating plots for experiment {exp_name} in directory {exp_dir}...")
-        metrics = pd.read_csv(open(os.path.join('runs',exp_dir, exp_name, 'logs', 'metrics.csv')))
+        metrics = pd.read_csv(open(os.path.join(LOG_DIR,exp_dir, exp_name, 'logs', 'metrics.csv')))
 
         metrics = metrics[-n_epoch:]
 
