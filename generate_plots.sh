@@ -10,6 +10,8 @@ module load python/3.11
 
 source activate fto
 pip install -r requirements.txt
+pip install pandas
+pip install matplotlib
 
 rsync -av $STORE/data/kolmogorov/ $SCRATCH/data/kolmogorov
 

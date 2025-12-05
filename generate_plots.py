@@ -24,11 +24,12 @@ model_to_load = 'min_test_loss.pth'
 n_epoch = 100
 #########################################################################
 
-LOG_DIR = os.getenv("LOG_DIR", "./runs")    
+LOG_DIR = os.getenv("LOG_DIR", "./runs")  
+DATA_DIR = os.getenv("DATA_DIR", "./data")  
 
 if __name__ == "__main__":
 
-    if not(os.path.exists(os.path.join('runs',exp_dir,exp_name))):
+    if not(os.path.exists(os.path.join(LOG_DIR,exp_dir,exp_name))):
         raise ValueError(f"Experiment {exp_name} in directory {exp_dir} does not exist.")
     else:
         print(f"Generating plots for experiment {exp_name} in directory {exp_dir}...")
@@ -42,8 +43,8 @@ if __name__ == "__main__":
         fig, ax1 = plt.subplots(figsize=(8,5))
 
         # Train/Test loss curves
-        ax1.plot(metrics['Epoch'], metrics['Train loss'], label='Train loss', color='#1f77b4', linewidth=2, linestyle='--')
-        ax1.plot(metrics['Epoch'], metrics['Test loss'], label='Test loss', color='#ff7f0e', linewidth=2, linestyle='--')
+        ax1.plot(metrics['Epoch'], metrics['Tr loss'], label='Train loss', color='#1f77b4', linewidth=2, linestyle='--')
+        ax1.plot(metrics['Epoch'], metrics['Te loss'], label='Test loss', color='#ff7f0e', linewidth=2, linestyle='--')
         ax1.set_ylabel('Losses')
         ax1.tick_params(axis='y')
         ax1.set_xlabel('Epoch')
@@ -61,7 +62,7 @@ if __name__ == "__main__":
         ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper right')
 
         plt.savefig(os.path.join(LOG_DIR,exp_dir, exp_name, 'logs', 'loss_and_lr_plot.png'), dpi=300)
-        print(f"Plot saved at: {os.path.join('runs',exp_dir, exp_name, 'logs', 'loss_and_lr_plot.png')}\n")
+        print(f"Plot saved at: {os.path.join(LOG_DIR,exp_dir, exp_name, 'logs', 'loss_and_lr_plot.png')}\n")
         plt.close()
 
         #####################################################################
@@ -87,7 +88,7 @@ if __name__ == "__main__":
 
         model = FTO(**filtered_args)
 
-        path_model = os.path.join('runs', exp_dir, exp_name, 'model_weights', model_to_load)
+        path_model = os.path.join(LOG_DIR, exp_dir, exp_name, 'model_weights', model_to_load)
         loaded_weights = torch.load(os.path.join(path_model))
         print(f"Loading weights from {path_model}, epoch {loaded_weights['epoch']}")
         last_epoch = loaded_weights['epoch']
@@ -103,7 +104,7 @@ if __name__ == "__main__":
 
         ######################################################################
         ################## Load datasets #####################################
-        datasets = DatasetManager(exp_dir, args["seq_length"], args["batch_size"], args["num_workers"])
+        datasets = DatasetManager(DATA_DIR, exp_dir, args["seq_length"], args["batch_size"], args["num_workers"])
 
         ######################################################################
         ################## Evaluate model ####################################

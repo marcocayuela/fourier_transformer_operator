@@ -1,6 +1,7 @@
 notebook_console.ipynb
 .DS_Store
 data/kolmogorov/*
+!data/kolmogorov/data_exploration.ipynb
 !data/**/*.gitkeep
 runs/*
 !runs/.gitkeep

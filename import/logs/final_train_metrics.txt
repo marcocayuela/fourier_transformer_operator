@@ -1,0 +1,6 @@
+train set metrics:
+rmse           : 1.600247
+mae            : 1.290661
+relative_rmse  : 1.211451
+relative_mae   : 1.144393
+loss           : 2.560791

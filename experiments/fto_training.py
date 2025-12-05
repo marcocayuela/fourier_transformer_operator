@@ -36,6 +36,7 @@ class FTOTraining():
         self.exp_name = self.args["exp_name"]
 
         # Training parameters
+        self.ratio = self.args["ratio"]
         self.seq_length = self.args["seq_length"]
         self.batch_size = self.args["batch_size"]
         self.num_workers = self.args["num_workers"]
@@ -46,7 +47,7 @@ class FTOTraining():
         self.metrics_name = self.args["metrics"]
 
         # Datasets
-        self.datasets = DatasetManager(DATA_DIR, self.exp_dir, self.seq_length, self.batch_size, self.num_workers)
+        self.datasets = DatasetManager(DATA_DIR, self.exp_dir, self.seq_length, self.batch_size, self.num_workers, self.ratio)
 
         # Model definition
         self.name_weights_to_load = self.args.get("name_weights_to_load", None)

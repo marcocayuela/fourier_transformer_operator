@@ -9,6 +9,7 @@ n_dim: 2
 domain_size:
   - 1
   - 1
+ratio: 5
 
 # Model parameters
 modes_separation: 
