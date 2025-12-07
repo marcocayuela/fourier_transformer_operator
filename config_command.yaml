@@ -2,7 +2,7 @@ seed: 42
 device: cpu
 
 # Experiment (ks, kolmogorov)
-exp_dir: kolmogorov
+exp_dir: kolmogorov/34
 input_dim: 2
 output_dim: 2
 n_dim: 2
