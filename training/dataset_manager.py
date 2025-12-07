@@ -24,8 +24,8 @@ class DatasetManager():
         else:
             self.ratio = ratio  
 
-        if self.exp_dir == "kolmogorov/34":
-            data_dir = os.path.join(data_rep,'kolmogorov/34')
+        if self.exp_dir == "kolmogorov/Re34":
+            data_dir = os.path.join(data_rep,'kolmogorov/Re34')
             
             train_path = os.path.join(data_dir,'train.h5')
             with h5py.File(train_path, "r") as f:
