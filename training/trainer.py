@@ -9,7 +9,7 @@ from tqdm import tqdm
 from training.metric_logger import MetricLogger
 
 
-LOG_DIR = os.getenv("LOG_DIR")
+LOG_DIR = os.getenv("LOG_DIR", "./runs")
 
 class Trainer():
 

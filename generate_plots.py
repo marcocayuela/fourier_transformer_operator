@@ -17,11 +17,11 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 
 ##################### Which experiment to test ##########################
-exp_dir = 'kolmogorov'
+exp_dir = 'kolmogorov/Re34'
 exp_name = 'exp1'
-model_to_load = 'min_test_loss.pth'
+model_to_load = 'min_train_loss.pth'
 
-n_epoch = 100
+n_epoch = 0
 #########################################################################
 
 LOG_DIR = os.getenv("LOG_DIR", "./runs")  

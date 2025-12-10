@@ -53,10 +53,9 @@ class FourierBining():
         self.fourier_shape = None
         self.shapes_bin = None
         self.input_model_shape = None
-        
+        self.x_gridsize = None
         self.bins_size = None
 
-        self.x_gridsize = self.n_dim * [self.freq_max*2] #provisory before seeing input data but necessary for knowing number of value in each bin
 
         self.magnitude_spectrum()
         self.create_masks() 
@@ -65,16 +64,15 @@ class FourierBining():
         
     def magnitude_spectrum(self):
         k_axes = []
-        for i in range(self.n_dim):
-            L = self.domain_size[i]
-            N = self.x_gridsize[i]
+        for L in self.domain_size:
+            N = self.freq_max*2
             dx = L/N
             k = np.fft.fftfreq(N, d=dx)
             k_axes.append(k)
 
         self.k_mesh = np.meshgrid(*k_axes, indexing='ij')
         self.k_magnitude = self.compute_freq_magnitude(self.k_mesh) 
-        self.rk_magnitude = self.k_magnitude[...,:(self.x_gridsize[-1]//2+1)]
+        self.rk_magnitude = self.k_magnitude[...,:self.freq_max+1]
 
     def compute_freq_magnitude(self, k_mesh):
         if self.norm_separation=="L2":
@@ -101,14 +99,10 @@ class FourierBining():
 
     def fourier_transform(self, x):
         """ x tensor of shape (batch_size, seq_len, dim_1, dim_2, ..., dim_n, representation_dim) """
-        if x.shape[2:2+self.n_dim] != self.x_gridsize: # Update grid size based on input data 
-            self.x_gridsize = x.shape[2:2+self.n_dim] 
-            self.magnitude_spectrum()
-            self.create_masks() 
-            self.compute_bin_input_shapes()
-
+        self.x_gridsize = x.shape[2:2+self.n_dim]
         x =  x.permute(0, 1, -1, *range(2, 2 + self.n_dim))  # (batch_size, seq_len, representation_dim, dim_1, dim_2, ..., dim_n)
-        x_ft = torch.fft.rfftn(x, dim=tuple(range(3, 3 + self.n_dim)))  # (batch_size, seq_len, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n)
+        fft_shape = self.n_dim * [self.freq_max*2]
+        x_ft = torch.fft.rfftn(x, s=fft_shape, dim=tuple(range(3, 3 + self.n_dim)))  # (batch_size, seq_len, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n)
         self.fourier_shape = x_ft.shape
         return x_ft
     
@@ -142,8 +136,33 @@ class FourierBining():
         return unbinned_x_ft  # tensor of shape (batch_size, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n)
 
     def inverse_fourier_transform(self, x_ft):
-      
-        x = torch.fft.irfftn(x_ft, dim=tuple(range(2, 2 + self.n_dim))) # (batch_size, representation_dim, dim_1, dim_2, ..., dim_n)
+        """ x_ft tensor of shape (batch_size, representation_dim, freq_dim_1, freq_dim_2, ..., freq_dim_n) """
+        padded_shape = list(x_ft.shape[:2]) + list(self.x_gridsize)
+        padded_shape[-1] = self.x_gridsize[-1] // 2 + 1
+
+        padded_x_ft = torch.zeros(padded_shape, dtype=x_ft.dtype, device=self.device)
+
+        indexes_list = []
+        for i in range(self.n_dim):
+            if i < self.n_dim-1:
+                positive_modes = torch.arange(self.freq_max)
+                negative_modes = torch.arange(self.x_gridsize[i]- self.freq_max, self.x_gridsize[i])
+                slice_dims = torch.cat((positive_modes, negative_modes))
+                indexes_list.append(slice_dims)
+            if i == self.n_dim - 1:
+                slice_dims = torch.arange(self.freq_max + 1)
+                indexes_list.append(slice_dims)
+
+        index_tuple = [slice(None), slice(None)]
+        for i, idx in enumerate(indexes_list):
+            shape = [1]*self.n_dim
+            shape[i] = -1
+            index_tuple.append(idx.reshape(shape))
+
+        index_tuple = tuple(index_tuple)
+
+        padded_x_ft[index_tuple] = x_ft         
+        x = torch.fft.irfftn(padded_x_ft, dim=tuple(range(2, 2 + self.n_dim))) # (batch_size, representation_dim, dim_1, dim_2, ..., dim_n)
         x = x.permute(0, *range(2, 2 + self.n_dim), 1)  # (batch_size, dim_1, dim_2, ..., dim_n, representation_dim)
         return x
     
